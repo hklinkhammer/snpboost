@@ -1,5 +1,5 @@
 # snpboost
-An algorithm to apply statistical boosting on genotype data via a batch-based approach.
+An algorithm to apply statistical boosting on genotype data via a batch-based approach as described in https://www.biorxiv.org/content/10.1101/2022.04.29.489836v1.
 
 snpboost includes R functions in which the boosting algorithm is implemented.
 
