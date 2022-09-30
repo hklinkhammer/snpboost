@@ -1,0 +1,6 @@
+bfile="genotype_file"
+
+
+plink2 --bfile $bfile --keep train_ids_unrelated.txt --maf 0.001 --geno 0.9 --make-bed --out ukb_GWAS
+
+plink2 --bfile ukb_GWAS --pheno phenos_GWAS.txt --glm cols=chrom,pos,ref,alt,ax,test,nobs,beta,se,p

@@ -69,22 +69,38 @@ predict_SNP_boost <- function(fit, new_genotype_file, new_phenotype_file, phenot
   
   rownames(pred)=phe_PRS$IID
   
-  residuals <- phe_PRS[[phenotype]]-pred
+  residuals <- computeResiduals(phe_PRS[[phenotype]], pred, fit$configs[['family']])
+  rownames(residuals) <- phe_PRS$IID
   
-  rownames(residuals)=phe_PRS$IID
+  metric <- computeMetric(residuals, phe_PRS[[phenotype]], pred, fit$configs[['metric']])
   
-  metric <- mean((phe_PRS[[phenotype]]-pred)^2)
-  
-  Rsquare <- cor(phe_PRS[[phenotype]],pred)^2
-  
-  out <- list(prediction = pred, residuals=residuals, metric = metric, Rsquare=Rsquare)
+  if(fit$configs[['family']]=='gaussian'){
+    Rsquare <- cor(phe_PRS[[phenotype]],pred)^2
+  }else if(fit$configs[['family']]=='binomial'){
+    AUC <- as.numeric(pROC::auc(phe_PRS[[phenotype]],exp(pred)/(1+exp(pred))))
+  }
+  out <- list(prediction = pred, residuals=residuals, metric = metric,
+              Rsquare=if(fit$configs[['family']]=='gaussian'){Rsquare}else{NULL}, AUC=if(fit$configs[['family']]=='binomial'){AUC}else{NULL})
+}
+
+computeResiduals <- function(phenotype, prediction, family) {
+  if (family == 'gaussian') {
+    residuals <- phenotype - prediction
+  } else if (family == 'binomial'){
+    p.hat <- exp(prediction)/(1+exp(prediction))
+    residuals <- (phenotype - p.hat)
+  }
+  residuals
 }
 
 ### so far only MSEP implemented, to be extended for further metrics
-computeMetric <- function(residual,metric.type) {
+computeMetric <- function(residual, phenotype, prediction, metric.type) {
   if (metric.type == 'MSEP') {
     metric <- mean(residual^2)
-  } 
+  } else if (metric.type == 'log loss'){
+    p.hat <- exp(prediction)/(1+exp(prediction))
+    metric <- - mean(phenotype * log(p.hat) + (1-phenotype) * log( 1-p.hat), na.rm=T)
+  }
   metric
 }
 
@@ -94,7 +110,7 @@ checkEarlyStoppingBatches <- function(metric.val, iter, b_stop, configs, m_batch
     earlyStop <- FALSE
   }else{
     max.valid.idx.lag <- 1+sum(m_batch_list[1:(iter-b_stop)])
-    if(configs[['metric']]=='MSEP'){
+    if(configs[['metric']]=='MSEP' || configs[['metric']]=='log loss'){
       min.val.1 <- min(metric.val[1:max.valid.idx.lag])
       min.val.2 <- min(metric.val[(max.valid.idx.lag+1):sum(!is.na(metric.val))])
       snpboostLogger(sprintf('batch=%g, stopping lag=%g, min.val.1=%g min.val.2=%g', iter, max.valid.idx.lag, min.val.1, min.val.2))
@@ -184,12 +200,13 @@ setupConfigs <- function(configs, genotype.pfile, phenotype.file, phenotype, cov
   out
 }
 
-### so far only gaussian supported, we use MSEP
+### for gaussian we use MSEP
+### for binomial we use log loss
 setDefaultMetric <- function(family){
   if (family == "gaussian") {
     metric <- 'MSEP'
-#  } else if (family == "binomial") {
-#    metric <- 'auc'
+  } else if (family == "binomial") {
+    metric <- 'log loss'
 #  } else if (family == "cox") {
 #    metric <- 'C'
   } else {
@@ -239,7 +256,7 @@ computeStats <- function(pfile, ids, configs) {
         stats_pNAs  = MISSING_CT / (MISSING_CT + OBS_CT),
         stats_means = (2*HAP_ALT_CTS + HET_REF_ALT_CTS + 2 * TWO_ALT_GENO_CTS ) / OBS_CT,
         stats_msts  = (4*HAP_ALT_CTS + HET_REF_ALT_CTS + 4 * TWO_ALT_GENO_CTS ) / OBS_CT,
-        stats_SDs   = stats_msts - stats_means * stats_means
+        stats_SDs   = (stats_msts - stats_means * stats_means) * OBS_CT / (OBS_CT - 1)
       )
   }
   

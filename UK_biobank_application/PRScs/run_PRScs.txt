@@ -1,0 +1,3 @@
+bfile="genotype_file"
+
+python PRScs/PRScs.py --ref_dir=ldblk_ukbb_eur --bim_prefix=$bfile --sst_file=../GWAS/glucose_sumstats.txt --n_gwas=170557 --out_dir Output/glucose

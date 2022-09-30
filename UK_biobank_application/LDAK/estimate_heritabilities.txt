@@ -1,0 +1,23 @@
+## use BLD-LDAK model as recommended on the website dougspeed.com
+
+## Calculate Taggings
+
+./ldak5.2.linux --cut-weights bld --bfile ../GWAS/ukb_val
+./ldak5.2.linux --calc-weights-all bld --bfile ../GWAS/ukb_val
+mv bld/weights.short bld65
+
+./ldak5.2.linux --calc-tagging BLD-LDAK --bfile ukb_val_with_cms_single --ignore-weights YES --power -.25 --window-cm 1 --annotation-number 1 --annotation-prefix bld --save-matrix YES
+
+
+## estimate pre-predictor heritabilities
+
+./ldak5.2.linux --sum-hers LDL_adj.bld.ldak --tagfile BLD-LDAK.tagging --summary ../GWAS/LDL_adj.glm.linear --matrix BLD-LDAK.matrix
+
+./ldak5.2.linux --sum-hers height.bld.ldak --tagfile BLD-LDAK.tagging --summary ../GWAS/height.glm.linear --matrix BLD-LDAK.matrix
+
+./ldak5.2.linux --sum-hers BMI.bld.ldak --tagfile BLD-LDAK.tagging --summary ../GWAS/BMI.glm.linear --matrix BLD-LDAK.matrix
+
+./ldak5.2.linux --sum-hers lipoprotein_A.bld.ldak --tagfile BLD-LDAK.tagging --summary ../GWAS/lipoprotein_A.glm.linear --matrix BLD-LDAK.matrix
+
+./ldak5.2.linux --sum-hers glucose.bld.ldak --tagfile BLD-LDAK.tagging --summary ../GWAS/glucose.glm.linear --matrix BLD-LDAK.matrix
+

@@ -1,0 +1,25 @@
+## run bolt
+./ldak5.2.linux --bolt bolt --pheno ../GWAS/phenos_GWAS.txt --mpheno 4 --bfile ukb_train_val_with_cms_single --ind-hers LDL_adj.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+./ldak5.2.linux --validate bolt --scorefile bolt.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 1
+mkdir LDL/bolt
+mv bolt.* LDL/bolt
+
+./ldak5.2.linux --bolt bolt --pheno ../GWAS/phenos_GWAS.txt --mpheno 1 --bfile ukb_train_val_with_cms_single --ind-hers height.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+../.././ldak5.2.linux --validate bolt --scorefile bolt.effects --bfile ../../ukb_val_with_cms_single --pheno ../../phenos_val.pheno --mpheno 2
+#mkdir height/bolt
+mv bolt.* height/bolt
+
+./ldak5.2.linux --bolt bolt --pheno ../GWAS/phenos_GWAS.txt --mpheno 3 --bfile ukb_train_val_with_cms_single --ind-hers BMI.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+./ldak5.2.linux --validate bolt --scorefile bolt.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 3
+#mkdir BMI/bolt
+mv bolt.* BMI/bolt
+
+./ldak5.2.linux --bolt bolt --pheno ../GWAS/phenos_GWAS.txt --mpheno 5 --bfile ukb_train_val_with_cms_single --ind-hers lipoprotein_A.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES --max-threads 50
+./ldak5.2.linux --validate bolt --scorefile bolt.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 4
+mkdir lipo/bolt
+mv bolt.* lipo/bolt
+
+./ldak5.2.linux --bolt bolt --pheno ../GWAS/phenos_GWAS.txt --mpheno 2 --bfile ukb_train_val_with_cms_single --ind-hers glucose.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES --max-threads 50
+./ldak5.2.linux --validate bolt --scorefile bolt.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 5
+mkdir glucose/bolt
+mv bolt.* glucose/bolt

@@ -1,0 +1,12 @@
+bfile = "genotype_file"
+method = "ridge"
+
+plink2 --bfile $bfile --score LDL/${method}/${method}.best.effects 1 2 5 cols=phenos,denom,dosagesum,scoreavgs,scoresums --out LDL/${method}/LDL
+
+plink2 --bfile $bfile --score BMI/${method}/${method}.best.effects 1 2 5 cols=phenos,denom,dosagesum,scoreavgs,scoresums --out BMI/${method}/BMI
+
+plink2 --bfile $bfile --score height/${method}/${method}.best.effects 1 2 5 cols=phenos,denom,dosagesum,scoreavgs,scoresums --out height/${method}/height
+
+plink2 --bfile $bfile --score glucose/${method}/${method}.best.effects 1 2 5 cols=phenos,denom,dosagesum,scoreavgs,scoresums --out glucose/${method}/glucose
+
+plink2 --bfile $bfile --score lipo/${method}/${method}.best.effects 1 2 5 cols=phenos,denom,dosagesum,scoreavgs,scoresums --out lipo/${method}/lipo

@@ -29,8 +29,8 @@ snpboost <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, c
   if (configs[['verbose']]) print(configs)
   
   ### --- so far only gaussian family is supported --- ###
-  if (family!="gaussian"){
-    stop("So far only gaussian phenotypes are supported by snpboost.")
+  if (!family %in% c("gaussian","binomial")){
+    stop("So far only gaussian and binary phenotypes are supported by snpboost.")
   }
 
   ### --- Define the set of individual IDs for training (and validation) set(s) --- ###
@@ -77,14 +77,20 @@ snpboost <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, c
   snpboostLoggerTimeDiff("Preprocessing end.", time.start, indent=1)
 
   snpboostLogger("Iteration 0")
-
     glmmod <- stats::glm(
-       stats::as.formula(paste(phenotype, " ~ ", paste(c(1, covariates), collapse = " + "))),
-       data = phe[['train']], family = family
-       )
-    residual <- matrix(stats::residuals(glmmod, type = "response"), ncol = 1)
-    residual_val <- if(validation){matrix(phe[['val']][[phenotype]]-predict(glmmod, newdata = phe[['val']]), ncol = 1)}else{NULL}
-        
+      stats::as.formula(paste(phenotype, " ~ ", paste(c(1, covariates), collapse = " + "))),
+      data = phe[['train']], family = family
+    )
+    
+    prediction <- predict(glmmod, newdata = phe[['train']])
+    residual <- matrix(computeResiduals(phe[['train']][[phenotype]],prediction,family),ncol=1)
+    
+    prediction_val <- predict(glmmod, newdata = phe[['val']])
+    residual_val <- if(validation){matrix(computeResiduals(phe[['val']][[phenotype]],prediction_val,family), ncol = 1)}else{NULL}
+    
+    beta <- data.frame(NA,t(glmmod$coefficients),0,row.names = NULL)
+    names(beta)=c("name","intercept",covariates,"variant")
+
     rownames(residual) <- rownames(phe[['train']])
     colnames(residual) <- c('0')
     
@@ -107,10 +113,10 @@ snpboost <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, c
     metric.train <-numeric()
     metric.val <- numeric()
 
-    metric.train[1] <- computeMetric(residual,configs[['metric']])
-    metric.val[1] <- computeMetric(residual_val,configs[['metric']])
-    beta <- data.frame(NA,t(glmmod$coefficients),0,row.names = NULL)
-    names(beta)=c("name","intercept",covariates,"variant")
+    metric.train[1] <- computeMetric(residual, phe[['train']][[phenotype]], prediction, configs[['metric']])
+    metric.val[1] <- computeMetric(residual_val, phe[['val']][[phenotype]], prediction_val, configs[['metric']])
+    
+    
     if(give_residuals){
       residual.track <- list(residual)
       residual.track.val <- list(residual_val)
@@ -164,13 +170,16 @@ snpboost <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, c
    
     ### --- Boosting --- ###
     if (configs[['verbose']]) snpboostLogger("Start Boosting ...", indent=1)
-
+    save(list=ls(),file="test.RData")
     lm_boost_tmp <- lm_boost(y = residual, x = features[['train']],validation = validation, y_val = residual_val, x_val = features[['val']],
                              beta = beta, m_batch = m_batch, sl = sl, covariates = covariates,
                              coeff_path_save = coeff_path_save,give_residuals=give_residuals,
-                             c_stop=sorted.score[min(p_batch+1, length(sorted.score))],configs=configs)
+                             c_stop=sorted.score[min(p_batch+1, length(sorted.score))],configs=configs,
+                             phe = phe, phenotype = phenotype, prediction = prediction, prediction_val = prediction_val)
     m_batch_list[iter] <- lm_boost_tmp$stop
     residual <- lm_boost_tmp$residuals
+    prediction <- lm_boost_tmp$prediction
+    prediction_val <- lm_boost_tmp$prediction_val
     metric.train <- c(metric.train, lm_boost_tmp$metric.train)
     residual_val <- if(validation){lm_boost_tmp$residuals_val}else{NULL}
     metric.val <- c(metric.val, lm_boost_tmp$metric.val)
@@ -210,7 +219,7 @@ snpboost <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, c
     if(validation && checkEarlyStoppingBatches(metric.val,iter,b_stop,configs,m_batch_list))break
   }
     n_iter = iter
-    n_step = if(configs[['metric']]=='MSEP') which.min(metric.val)
+    n_step = if(configs[['metric']]=='MSEP' || configs[['metric']]=='log loss') which.min(metric.val)
   }
   snpboostLoggerTimeDiff("End SNP boost.", time.start)
   if(! configs[['save']]) cleanUpIntermediateFiles(configs)

@@ -1,0 +1,3 @@
+bfile="genotype_file"
+
+plink2 --bfile $bfile --score Output/BMI_betas.txt 2 4 6 cols=phenos,denom,dosagesum,scoreavgs,scoresums --out Scores/BMI

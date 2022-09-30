@@ -1,0 +1,25 @@
+## run ridge
+./ldak5.2.linux --ridge ridge --pheno ../GWAS/phenos_GWAS.txt --mpheno 4 --bfile ukb_train_val_with_cms_single --ind-hers LDL_adj.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+./ldak5.2.linux --validate ridge --scorefile ridge.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 1
+mkdir LDL/ridge
+mv ridge.* LDL/ridge
+
+./ldak5.2.linux --ridge ridge --pheno ../GWAS/phenos_GWAS.txt --mpheno 1 --bfile ukb_train_val_with_cms_single --ind-hers height.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+../.././ldak5.2.linux --validate ridge --scorefile ridge.effects --bfile ../../ukb_val_with_cms_single --pheno ../../phenos_val.pheno --mpheno 2
+#mkdir height/ridge
+mv ridge.* height/ridge
+
+./ldak5.2.linux --ridge ridge --pheno ../GWAS/phenos_GWAS.txt --mpheno 3 --bfile ukb_train_val_with_cms_single --ind-hers BMI.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+./ldak5.2.linux --validate ridge --scorefile ridge.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 3
+#mkdir BMI/ridge
+mv ridge.* BMI/ridge
+
+./ldak5.2.linux --ridge ridge --pheno ../GWAS/phenos_GWAS.txt --mpheno 5 --bfile ukb_train_val_with_cms_single --ind-hers lipoprotein_A.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES --max-threads 50
+./ldak5.2.linux --validate ridge --scorefile ridge.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 4
+mkdir lipo/ridge
+mv ridge.* lipo/ridge
+
+./ldak5.2.linux --ridge ridge --pheno ../GWAS/phenos_GWAS.txt --mpheno 2 --bfile ukb_train_val_with_cms_single --ind-hers glucose.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES --max-threads 50
+./ldak5.2.linux --validate ridge --scorefile ridge.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 5
+mkdir glucose/ridge
+mv ridge.* glucose/ridge

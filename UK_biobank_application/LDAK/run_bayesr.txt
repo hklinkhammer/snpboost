@@ -1,0 +1,25 @@
+## run bayesr
+./ldak5.2.linux --bayesr bayesr --pheno ../GWAS/phenos_GWAS.txt --mpheno 4 --bfile ukb_train_val_with_cms_single --ind-hers LDL_adj.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+./ldak5.2.linux --validate bayesr --scorefile bayesr.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 1
+mkdir LDL/bayesr
+mv bayesr.* LDL/bayesr
+
+./ldak5.2.linux --bayesr bayesr --pheno ../GWAS/phenos_GWAS.txt --mpheno 1 --bfile ukb_train_val_with_cms_single --ind-hers height.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+../.././ldak5.2.linux --validate bayesr --scorefile bayesr.effects --bfile ../../ukb_val_with_cms_single --pheno ../../phenos_val.pheno --mpheno 2
+#mkdir height/bayesr
+mv bayesr.* height/bayesr
+
+./ldak5.2.linux --bayesr bayesr --pheno ../GWAS/phenos_GWAS.txt --mpheno 3 --bfile ukb_train_val_with_cms_single --ind-hers BMI.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES
+./ldak5.2.linux --validate bayesr --scorefile bayesr.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 3
+#mkdir BMI/bayesr
+mv bayesr.* BMI/bayesr
+
+./ldak5.2.linux --bayesr bayesr --pheno ../GWAS/phenos_GWAS.txt --mpheno 5 --bfile ukb_train_val_with_cms_single --ind-hers lipoprotein_A.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES --max-threads 50
+./ldak5.2.linux --validate bayesr --scorefile bayesr.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 4
+mkdir lipo/bayesr
+mv bayesr.* lipo/bayesr
+
+./ldak5.2.linux --bayesr bayesr --pheno ../GWAS/phenos_GWAS.txt --mpheno 2 --bfile ukb_train_val_with_cms_single --ind-hers glucose.bld.ldak.ind.hers --keep ../GWAS/train_ids_unrelated.txt --skip-cv YES --max-threads 50
+./ldak5.2.linux --validate bayesr --scorefile bayesr.effects --bfile ukb_val_with_cms_single --pheno phenos_val.pheno --mpheno 5
+mkdir glucose/bayesr
+mv bayesr.* glucose/bayesr
