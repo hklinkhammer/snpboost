@@ -14,7 +14,7 @@ The following requirements of snpboost are available from CRAN:
   - Rfast
   - parallel
   - dataPreparation
-  - 
+    
 Like snpnet, it also depends on the pgenlibr, glmnet/glmnetPlus packages. One can install them by running the following commands in R. Notice that the installation of pgenlibr requires zstd(>=1.4.4). It can be built from source or simply available from conda, pip or brew.
 
 ```r
