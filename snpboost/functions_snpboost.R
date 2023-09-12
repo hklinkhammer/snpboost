@@ -34,7 +34,7 @@ plot_coefficients_path <- function(coeff_path,variants=na.omit(unique(coeff_path
     theme(legend.position = ifelse(legend,"bottom","none"))
 }
 
-predict_SNP_boost <- function(fit, new_genotype_file, new_phenotype_file, phenotype, subset=NULL,idx=NULL){
+predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenotype, subset=NULL,idx=NULL){
   if(is.null(idx)){
     if(!is.null(fit$metric.val)){
       idx <- which.min(fit$metric.val)
@@ -68,11 +68,26 @@ predict_SNP_boost <- function(fit, new_genotype_file, new_phenotype_file, phenot
   pred <- matrix(final_betas[1] + phe_PRS$PRS + if(!is.null(fit$configs[['covariates']])){as.matrix(phe_PRS%>%select(fit$configs[['covariates']])) %*% final_betas[fit$configs[['covariates']]]}else{0},ncol=1)
   
   rownames(pred)=phe_PRS$IID
-  
-  residuals <- computeResiduals(phe_PRS[[phenotype]], pred, fit$configs[['family']])
-  rownames(residuals) <- phe_PRS$IID
-  
-  metric <- computeMetric(residuals, phe_PRS[[phenotype]], pred, fit$configs[['metric']])
+  if(fit$configs[['family']]=='cox'){
+      surv <- survival::Surv(phe_PRS[[phenotype]], phe_PRS[[fit$configs[['status.col']]]])
+      T_order <- order(surv[,1])
+      IPCw <- IPCweights(surv)
+      sum_help <- function(i){ifelse(i<length(surv[,1]),IPCw[T_order][i]^2*sum((surv[,1][T_order][(i+1):length(surv)]-surv[,1][T_order][i])!=0)+
+                                       0.5*IPCw[T_order][i]^2*(sum((surv[,1][T_order]-surv[,1][T_order][i])==0)-1),0.5*IPCw[T_order][i]^2*(sum((surv[,1][T_order]-surv[,1][T_order][i])==0)-1))}
+      
+      w_denom <- sum(mapply(sum_help,1:length(surv)))
+      wweights <- IPCw^2/w_denom
+      
+      residuals <- computeResiduals(surv, pred, fit$configs, IPCw, w_denom, T_order, wweights)
+      rownames(residuals) <- phe_PRS$IID
+      
+      metric <- computeMetric(residuals, surv, pred, fit$configs, surv, IPCw)
+    }else{
+      residuals <- computeResiduals(phe_PRS[[phenotype]], pred, fit$configs)
+      rownames(residuals) <- phe_PRS$IID
+    
+      metric <- computeMetric(residuals, phe_PRS[[phenotype]], pred, fit$configs)
+  }
   
   if(fit$configs[['family']]=='gaussian'){
     Rsquare <- cor(phe_PRS[[phenotype]],pred)^2
@@ -83,23 +98,253 @@ predict_SNP_boost <- function(fit, new_genotype_file, new_phenotype_file, phenot
               Rsquare=if(fit$configs[['family']]=='gaussian'){Rsquare}else{NULL}, AUC=if(fit$configs[['family']]=='binomial'){AUC}else{NULL})
 }
 
-computeResiduals <- function(phenotype, prediction, family) {
-  if (family == 'gaussian') {
+computeResiduals <- function(phenotype, prediction, configs, IPCw=NULL, w_denom = NULL, T_order = NULL, wweights = NULL, sigma=NULL) {
+  if (configs[['metric']] == 'MSEP') {
     residuals <- phenotype - prediction
-  } else if (family == 'binomial'){
+  } else if(configs[['metric']] == 'quantilereg'){
+    residuals <- -(1-configs[['quantile']])*(prediction > phenotype) + configs[['quantile']]*(prediction <= phenotype)
+  } else if (configs[['metric']] == 'log_loss'){
     p.hat <- exp(prediction)/(1+exp(prediction))
     residuals <- (phenotype - p.hat)
+  } else if (configs[['metric']] == 'C'){
+    
+    residuals <- numeric(length(prediction))
+    sum_approx <- function(i){ifelse(i<length(prediction),wweights[T_order][i]*sum(approxGrad(prediction[T_order][(i+1):length(prediction)]-prediction[T_order][i])*as.numeric((phenotype[,1][T_order][(i+1):length(prediction)]-phenotype[,1][T_order][i])!=0)+
+                                                     0.5*approxGrad(prediction[T_order][(i+1):length(prediction)]-prediction[T_order][i])*as.numeric((phenotype[,1][T_order][(i+1):length(prediction)]-phenotype[,1][T_order][i])==0)),0)-
+                              ifelse(i>1,sum(wweights[T_order][1:(i-1)]*(approxGrad(prediction[T_order][i]-prediction[T_order][1:(i-1)])*as.numeric((phenotype[,1][T_order][i]-phenotype[,1][T_order][1:(i-1)])!=0)+
+                                                     0.5*approxGrad(prediction[T_order][i]-prediction[T_order][1:(i-1)])*as.numeric((phenotype[,1][T_order][i]-phenotype[,1][T_order][1:(i-1)])==0))),0) 
+    }
+    
+    sum_approx2 <- function(i){ifelse(i<length(prediction),wweights[T_order][i]*sum(approxGrad(prediction[T_order][(i+1):length(prediction)]-prediction[T_order][i])[(phenotype[,1][T_order][(i+1):length(prediction)]-phenotype[,1][T_order][i])!=0]),0)-
+        ifelse(i>1,sum(wweights[T_order][1:(i-1)]*(approxGrad(prediction[T_order][i]-prediction[T_order][1:(i-1)])*as.numeric((phenotype[,1][T_order][i]-phenotype[,1][T_order][1:(i-1)])!=0))),0) 
+    }
+
+    residuals[T_order]=parallel::mcmapply(sum_approx2,1:length(prediction),mc.cores = configs[['nCores']])
+    
+  } else if(configs[['metric']] == 'weightedL2'){
+    time <- phenotype[,1]
+    ### log(0) will produce NaN
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    residuals <- 2*IPCw*(log(time)-prediction)
+  } else if(configs[['metric']] == 'Cox'){
+    help_fct_0 <- function(i){sum((phenotype[,1]>=phenotype[i,1])*exp(prediction))}
+    help_vct <- mcmapply(help_fct_0,1:length(prediction),mc.cores = configs[['nCores']])
+    help_fct <- function(i){sum((phenotype[i,1]>=phenotype[,1])/help_vct)}
+    residuals<- phenotype[,2]-exp(prediction)*mcmapply(help_fct,1:length(prediction),mc.cores = configs[['nCores']])
+  } else if(configs[['metric']] == 'AFT-Weibull'){
+    
+    #log(0) will produce Inf
+    time <- phenotype[,1]
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    lnt <- log(time)
+    
+    eta <- (lnt-prediction)/sigma
+    
+    residuals <- (exp(eta)-phenotype[,2])/sigma
+    
+  } else if(configs[['metric']] == 'AFT-logistic'){
+    
+    time <- phenotype[,1]
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    lnt <- log(time)
+    
+    eta <- (lnt-prediction)/sigma
+    
+    residuals <- (exp(eta)-phenotype[,2])/(sigma*(1+exp(eta)))
+    
+  } else if(configs[['metric']] == 'AFT-normal'){
+    
+    time <- phenotype[,1]
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    derf <- function(x){
+      -x*dnorm(x)
+    }
+    
+    lnt <- log(time)
+    
+    eta <- (lnt-prediction)/sigma
+    
+    v1 <- derf(eta)/(sigma*dnorm(eta))
+    v1[phenotype[,2]==0]=0
+    
+    v2 <- dnorm(eta)/(sigma*(1-pnorm(eta)))
+    v2[phenotype[,2]==1]=0
+    
+    residuals <- -v1+v2
+  } else if (configs[['metric']] == 'Poisson'){
+    residuals <- phenotype - exp(prediction)
+  } else if (configs[['metric']] == 'negative_binomial'){
+    residuals <- phenotype - (phenotype + sigma)*exp(prediction)/(exp(prediction)+sigma)
   }
   residuals
 }
 
-### so far only MSEP implemented, to be extended for further metrics
-computeMetric <- function(residual, phenotype, prediction, metric.type) {
-  if (metric.type == 'MSEP') {
+optimizeSigma <- function(phenotype, prediction, configs){
+  if(configs[['metric']] == 'AFT-Weibull'){
+    riskS <- function(sigma, phenotype, pred){
+      time <- phenotype[,1]
+      #### log(0) will produce NaN
+      time[time==0] <- sort(unique(time))[2]/10
+      
+      fw <- function(x){
+        exp(x - exp(x))
+      }
+      Sw <- function(x){
+        exp(-exp(x))
+      }
+      
+      lnt <- log(time)
+      Sevent <- phenotype[,2]
+      eta <- (lnt-pred) / sigma
+      
+      plloss <- - Sevent * log(fw(eta)/sigma) - (1 - Sevent) * log(Sw(eta))
+      
+      sum(plloss)
+    }
+  } else if(configs[['metric']] == 'AFT-logistic'){
+    riskS <- function(sigma, phenotype, pred){
+      time <- phenotype[,1]
+      #### log(0) will produce NaN
+      time[time==0] <- sort(unique(time))[2]/10
+      
+      fw <- function(x){
+        exp(x)/(1+exp(x))^2
+      }
+      Sw <- function(x){
+        1/(1+exp(x))
+      }
+      
+      lnt <- log(time)
+      Sevent <- phenotype[,2]
+      eta <- (lnt-pred) / sigma
+      
+      plloss <- - Sevent * log(fw(eta)/sigma) - (1 - Sevent) * log(Sw(eta))
+      
+      sum(plloss)
+    }
+  }else if(configs[['metric']] == 'AFT-normal'){
+    riskS <- function(sigma, phenotype, pred){
+      time <- phenotype[,1]
+      #### log(0) will produce NaN
+      time[time==0] <- sort(unique(time))[2]/10
+      
+      fw <- function(x){
+        dnorm(x)
+      }
+      Sw <- function(x){
+        1-pnorm(x)
+      }
+      
+      lnt <- log(time)
+      Sevent <- phenotype[,2]
+      eta <- (lnt-pred) / sigma
+      
+      plloss <- - Sevent * log(fw(eta)/sigma) - (1 - Sevent) * log(Sw(eta))
+      
+      sum(plloss)
+      }
+  } else if (configs[['metric']] == 'negative_binomial'){
+    riskS <- function(sigma, phenotype, pred){
+      -sum(lgamma(phenotype + sigma) - lgamma(phenotype+1) - lgamma(sigma)+sigma*log(sigma) -
+             (sigma + phenotype)*log(exp(pred)+sigma) + phenotype*pred)
+    }
+  }
+  sigma <- optimize(riskS, interval = c(0,100), phenotype = phenotype, pred= prediction)$minimum
+  sigma
+}
+
+
+### compute evaluation metrics
+computeMetric <- function(residual, phenotype, prediction, configs, phenotype2 = NULL, weights = NULL, sigma= NULL, T_order = NULL) {
+  if (configs[['metric']] == 'MSEP') {
     metric <- mean(residual^2)
-  } else if (metric.type == 'log loss'){
+  } else if(configs[['metric']] == 'quantilereg'){
+    metric <- sum((1-configs[['quantile']])*(prediction-phenotype)*(prediction > phenotype)+configs[['quantile']]*(phenotype - prediction)*(phenotype>=prediction))
+  }else if (configs[['metric']] == 'log_loss'){
     p.hat <- exp(prediction)/(1+exp(prediction))
-    metric <- - mean(phenotype * log(p.hat) + (1-phenotype) * log( 1-p.hat), na.rm=T)
+    metric <- - mean(phenotype * log(p.hat) + (1-phenotype) * log( 1-p.hat))
+  } else if (configs[['metric']] == 'C'){
+    
+    sum_cindex <- function(i){ifelse(i<length(prediction),weights[T_order][i]*sum(approxLoss(prediction[T_order][(i+1):length(prediction)]-prediction[T_order][i])[(phenotype[,1][T_order][(i+1):length(prediction)]-phenotype[,1][T_order][i])!=0]),0)}
+    
+    metric=-sum(parallel::mcmapply(sum_cindex,1:length(prediction),mc.cores = configs[['nCores']]))
+    
+  } else if(configs[['metric']] == 'weightedL2'){
+    time <- phenotype[,1]
+    ### log(0) will produce NaN
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    metric <- mean(weights*(log(time)-prediction)^2)
+  } else if(configs[['metric']] == 'Cox'){
+    help_fct <- function(i){phenotype[i,2]*(prediction[i]-log(sum((phenotype[,1]>=phenotype[i,1])*exp(prediction))))}
+    metric <- -sum(mcmapply(help_fct,1:length(prediction),mc.cores = configs[['nCores']]))
+  } else if(configs[['metric']] == 'AFT-Weibull'){
+    time <- phenotype[,1]
+    #### log(0) will produce NaN
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    lfw <- function(pred){
+      ordinal::dgumbel(pred,max=F,log=T)
+    }
+    Sw <- function(pred){
+      exp(-exp(pred))
+    }
+    
+    lnt <- log(time)
+    Sevent <- phenotype[,2]
+    eta <- (lnt-prediction) / sigma
+    
+    plloss <- - Sevent * (log(1/sigma)+lfw(eta)) - (1 - Sevent) * (-exp(eta))
+    
+    metric <- sum(plloss)
+    
+  } else if(configs[['metric']] == 'AFT-logistic'){
+    time <- phenotype[,1]
+    #### log(0) will produce NaN
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    fw <- function(x){
+      exp(x)/(1+exp(x))^2
+    }
+    Sw <- function(x){
+      1/(1+exp(x))
+    }
+    
+    lnt <- log(time)
+    Sevent <- phenotype[,2]
+    eta <- (lnt-prediction) / sigma
+    
+    plloss <- - Sevent * log(fw(eta)/sigma) - (1 - Sevent) * log(Sw(eta))
+    
+    metric <- sum(plloss)
+  } else if(configs[['metric']] == 'AFT-normal'){
+    time <- phenotype[,1]
+    #### log(0) will produce NaN
+    time[time==0] <- sort(unique(time))[2]/10
+    
+    fw <- function(pred){
+      dnorm(pred)
+    }
+    Sw <- function(pred){
+      1-pnorm(pred)
+    }
+    
+    lnt <- log(time)
+    Sevent <- phenotype[,2]
+    eta <- (lnt-prediction) / sigma
+    
+    plloss <- - Sevent * log(fw(eta)/sigma) - (1 - Sevent) * log(Sw(eta))
+    
+    metric <- sum(plloss)
+  } else if(configs[['metric']] == 'Poisson'){
+    metric <- -sum(dpois(phenotype,exp(prediction),log=T))
+  } else if(configs[['metric']] == 'negative_binomial'){
+    metric <- -sum(lgamma(phenotype + sigma) - lgamma(phenotype+1) - lgamma(sigma)+sigma*log(sigma) -
+                     (sigma + phenotype)*log(exp(prediction)+sigma) + phenotype*prediction)
   }
   metric
 }
@@ -110,13 +355,12 @@ checkEarlyStoppingBatches <- function(metric.val, iter, b_stop, configs, m_batch
     earlyStop <- FALSE
   }else{
     max.valid.idx.lag <- 1+sum(m_batch_list[1:(iter-b_stop)])
-    if(configs[['metric']]=='MSEP' || configs[['metric']]=='log loss'){
-      min.val.1 <- min(metric.val[1:max.valid.idx.lag])
-      min.val.2 <- min(metric.val[(max.valid.idx.lag+1):sum(!is.na(metric.val))])
+      min.val.1 <- min(metric.val[1:max.valid.idx.lag],na.rm = T)
+      min.val.2 <- min(metric.val[(max.valid.idx.lag+1):sum(!is.na(metric.val))],na.rm = T)
       snpboostLogger(sprintf('batch=%g, stopping lag=%g, min.val.1=%g min.val.2=%g', iter, max.valid.idx.lag, min.val.1, min.val.2))
       if (
         (configs[['early.stopping']]>0) &&
-        (min.val.1 < min.val.2)
+        (min.val.1 <= min.val.2)
       ) {
         snpboostLogger(sprintf(
           "Early stopped at iteration %d (step =%d ) with validation metric: %.14f.",
@@ -126,9 +370,6 @@ checkEarlyStoppingBatches <- function(metric.val, iter, b_stop, configs, m_batch
       } else {
         earlyStop <- FALSE
       }
-    }else{ ### so far no other metric is supported
-      earlyStop <- FALSE
-    }
   }
   earlyStop
 }
@@ -169,7 +410,8 @@ setupConfigs <- function(configs, genotype.pfile, phenotype.file, phenotype, cov
     zstdcat.path='zstdcat',
     zcat.path='zcat',
     rank = TRUE,
-    excludeSNP = NULL
+    excludeSNP = NULL,
+    quantile = 0.5
   )
   out <- defaults
   
@@ -200,15 +442,22 @@ setupConfigs <- function(configs, genotype.pfile, phenotype.file, phenotype, cov
   out
 }
 
-### for gaussian we use MSEP
-### for binomial we use log loss
+updateConfigsWithMetric <- function(configs, metric){
+  out <- configs
+  if (!is.null(metric)) out[['metric']] <- metric
+  out
+}
+
+### set default metric if none is specified
 setDefaultMetric <- function(family){
   if (family == "gaussian") {
     metric <- 'MSEP'
   } else if (family == "binomial") {
-    metric <- 'log loss'
-#  } else if (family == "cox") {
-#    metric <- 'C'
+    metric <- 'log_loss'
+  } else if (family == "cox") {
+    metric <- 'AFT-Weibull'
+  } else if (family == "count") {
+    metric <- 'Poisson'
   } else {
     stop(paste0('The specified family (', family, ') is not supported!'))
   }
@@ -361,4 +610,71 @@ timeDiff <- function(start.time, end.time = NULL) {
 snpboostLoggerTimeDiff <- function(message, start.time, end.time = NULL, indent=0){
   if (is.null(end.time)) end.time <- Sys.time()
   snpboostLogger(paste(message, "Time elapsed:", timeDiff(start.time, end.time), sep=' '), log.time=end.time, indent=indent)
+}
+
+## CIndex functions
+
+### inverse probability of censoring weights
+### see van der Laan & Robins (2003)
+### taken from mboost::IPCweights
+IPCweights <- function(x, x2= NULL, maxweight = 5) {
+  
+  if (!extends(class(x), "Surv"))
+    stop(sQuote("x"), " is not a Surv object")
+  
+  if (is.null(x2)){x2 = x}
+  
+  event <- x[,2]
+  x[,2] <- 1 - event
+  km <- survfit(x ~ 1)
+  Ghat <- getsurv(km, times = x2[,1]) ## see github issue #54
+  Ghat[x2[,2] == 0] <- 1
+  w <- x2[,2] / Ghat
+  w[w > maxweight] <- maxweight
+  w
+}
+
+### extract survival probabilities
+### taken from ipred:::getsurv
+### DO NOT TOUCH HERE
+getsurv <- function(obj, times)
+{
+  # get the survival probability for times from KM curve j'
+  
+  if (!inherits(obj, "survfit")) stop("obj is not of class survfit")
+  # <FIXME: methods may have problems with that>
+  class(obj) <- NULL
+  # </FIXME>
+  lt <- length(times)
+  nsurv <- times
+  
+  # if the times are the same, return the km-curve
+  
+  if(length(times) == length(obj$time)) {
+    if (all(times == obj$time)) return(obj$surv)
+  }
+  
+  # otherwise get the km-value for every element of times separatly
+  
+  inside <- times %in% obj$time
+  for (i in (1:lt)) {
+    if (inside[i])
+      nsurv[i] <- obj$surv[obj$time == times[i]]
+    else  {
+      less <- obj$time[obj$time < times[i]]
+      if (length(less) == 0)
+        nsurv[i] <- 1
+      else
+        nsurv[i] <- obj$surv[obj$time == max(less)]
+    }
+  }
+  nsurv
+}
+
+approxGrad <- function(x, sigma = 0.1) {    ## sigmoid function for gradient
+  exp(x/sigma) / (sigma * (1 + exp(x/sigma))^2) 
+}
+
+approxLoss <- function(x, sigma = 0.1) { ## sigmoid function for loss
+  1 / (1 + exp(x / sigma))
 }
