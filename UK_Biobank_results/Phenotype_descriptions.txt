@@ -1,0 +1,270 @@
+f.100001.0.0 Food weight   
+f.100002.0.0 Energy    
+f.100003.0.0 Protein    
+f.100004.0.0 Fat    
+f.100005.0.0 Carbohydrate    
+f.100006.0.0 Saturated fat   
+f.100007.0.0 Polyunsaturated fat   
+f.100008.0.0 Total sugars   
+f.100009.0.0 Englyst dietary fibre  
+f.100011.0.0 Iron    
+f.100012.0.0 Vitamin B6   
+f.100013.0.0 Vitamin B12   
+f.100014.0.0 Folate    
+f.100015.0.0 Vitamin C   
+f.100016.0.0 Potassium    
+f.100017.0.0 Magnesium    
+f.100018.0.0 Retinol    
+f.100019.0.0 Carotene    
+f.100021.0.0 Vitamin D   
+f.100023.0.0 Starch    
+f.100024.0.0 Calcium    
+f.100025.0.0 Vitamin E   
+f.102.0.0 Pulse rate, automated reading 
+f.130.0.0 Place of birth in UK
+f.1438.0.0 Bread intake   
+f.1488.0.0 Tea intake   
+f.1807.0.0 Father's age at death 
+f.189.0.0 Townsend deprivation index at recruitment
+f.20007.0.0 Interpolated Age of participant when
+f.20015.0.0 Sitting height   
+f.20019.0.0 Speech-reception-threshold (SRT) estimate (left) 
+f.20021.0.0 Speech-reception-threshold (SRT) estimate (right) 
+f.20022.0.0 Birth weight   
+f.20074.0.0 Home location at assessment -
+f.20121.0.0 Cascot confidence score  
+f.20127.0.0 Neuroticism score   
+f.20420.0.0 Longest period spent worried or
+f.20433.0.0 Age at first episode of
+f.20434.0.0 Age at last episode of
+f.20455.0.0 Age when last took cannabis
+f.21001.0.0 Body mass index (BMI) 
+f.21002.0.0 Weight    
+f.21021.0.0 Pulse wave Arterial Stiffness index
+f.2139.0.0 Age first had sexual intercourse
+f.22146.0.0 Age hayfever or allergic rhinitis
+f.22147.0.0 Age asthma diagnosed by doctor
+f.2217.0.0 Age started wearing glasses or
+f.22501.0.0 Year ended full time education
+f.22503.0.0 Years of cough on most
+f.22507.0.0 Age of stopping smoking 
+f.22605.0.0 Work hours per week -
+f.22643.0.0 Number of night shifts worked
+f.22644.0.0 Consecutive night shifts during mixed
+f.22702.0.0 Home location - east co-ordinate
+f.23099.0.0 Body fat percentage  
+f.23100.0.0 Whole body fat mass 
+f.23101.0.0 Whole body fat-free mass 
+f.23102.0.0 Whole body water mass 
+f.23106.0.0 Impedance of whole body 
+f.23107.0.0 Impedance of leg (right) 
+f.23108.0.0 Impedance of leg (left) 
+f.23109.0.0 Impedance of arm (right) 
+f.23110.0.0 Impedance of arm (left) 
+f.23111.0.0 Leg fat percentage (right) 
+f.23112.0.0 Leg fat mass (right) 
+f.23113.0.0 Leg fat-free mass (right) 
+f.23114.0.0 Leg predicted mass (right) 
+f.23115.0.0 Leg fat percentage (left) 
+f.23116.0.0 Leg fat mass (left) 
+f.23117.0.0 Leg fat-free mass (left) 
+f.23118.0.0 Leg predicted mass (left) 
+f.23119.0.0 Arm fat percentage (right) 
+f.23120.0.0 Arm fat mass (right) 
+f.23121.0.0 Arm fat-free mass (right) 
+f.23122.0.0 Arm predicted mass (right) 
+f.23123.0.0 Arm fat percentage (left) 
+f.23124.0.0 Arm fat mass (left) 
+f.23125.0.0 Arm fat-free mass (left) 
+f.23126.0.0 Arm predicted mass (left) 
+f.23127.0.0 Trunk fat percentage  
+f.23129.0.0 Trunk fat-free mass  
+f.23130.0.0 Trunk predicted mass  
+f.24003.0.0 Nitrogen dioxide air pollution; 2010
+f.24004.0.0 Nitrogen oxides air pollution; 2010
+f.24005.0.0 Particulate matter air pollution (pm10);
+f.24006.0.0 Particulate matter air pollution (pm2.5);
+f.24007.0.0 Particulate matter air pollution (pm2.5)
+f.24008.0.0 Particulate matter air pollution 2.5-10um;
+f.24010.0.0 Inverse distance to the nearest
+f.24011.0.0 Traffic intensity on the nearest
+f.24012.0.0 Inverse distance to the nearest
+f.24016.0.0 Nitrogen dioxide air pollution; 2005
+f.24017.0.0 Nitrogen dioxide air pollution; 2006
+f.24018.0.0 Nitrogen dioxide air pollution; 2007
+f.24019.0.0 Particulate matter air pollution (pm10);
+f.24020.0.0 Average daytime sound level of
+f.24021.0.0 Average evening sound level of
+f.24022.0.0 Average night-time sound level of
+f.2754.0.0 Age at first live birth
+f.2764.0.0 Age at last live birth
+f.2794.0.0 Age started oral contraceptive pill
+f.2867.0.0 Age started smoking in former
+f.2966.0.0 Age high blood pressure diagnosed
+f.2976.0.0 Age diabetes diagnosed  
+f.30000.0.0 White blood cell (leukocyte) count
+f.30010.0.0 Red blood cell (erythrocyte) count
+f.30020.0.0 Haemoglobin concentration   
+f.30030.0.0 Haematocrit percentage   
+f.30040.0.0 Mean corpuscular volume  
+f.30050.0.0 Mean corpuscular haemoglobin  
+f.30060.0.0 Mean corpuscular haemoglobin concentration 
+f.30070.0.0 Red blood cell (erythrocyte) distribution
+f.30080.0.0 Platelet count   
+f.30090.0.0 Platelet crit   
+f.30110.0.0 Platelet distribution width  
+f.30120.0.0 Lymphocyte count   
+f.30130.0.0 Monocyte count   
+f.30140.0.0 Neutrophill count   
+f.30180.0.0 Lymphocyte percentage   
+f.30190.0.0 Monocyte percentage   
+f.30200.0.0 Neutrophill percentage   
+f.30210.0.0 Eosinophill percentage   
+f.30220.0.0 Basophill percentage   
+f.30240.0.0 Reticulocyte percentage   
+f.30250.0.0 Reticulocyte count   
+f.30260.0.0 Mean reticulocyte volume  
+f.30270.0.0 Mean sphered cell volume 
+f.30280.0.0 Immature reticulocyte fraction  
+f.30290.0.0 High light scatter reticulocyte percentage
+f.30300.0.0 High light scatter reticulocyte count
+f.30500.0.0 Microalbumin in urine  
+f.30510.0.0 Creatinine (enzymatic) in urine 
+f.30520.0.0 Potassium in urine  
+f.30530.0.0 Sodium in urine  
+f.30600.0.0 Albumin (g/L)   
+f.30610.0.0 Alkaline phosphatase (U/L)  
+f.3062.0.0 Forced vital capacity (FVC) 
+f.30620.0.0 Alanine aminotransferase (U/L)  
+f.3063.0.0 Forced expiratory volume in 1-second
+f.30630.0.0 Apoliprotein A (g/L)  
+f.3064.0.0 Peak expiratory flow (PEF) 
+f.30640.0.0 Apoliprotein B (g/L)  
+f.30650.0.0 Aspartate aminotransferase (U/L)  
+f.30660.0.0 Direct bilirubin (umol/L)  
+f.30670.0.0 Urea (mmol/L)   
+f.30680.0.0 Calcium (mmol/L)   
+f.30690.0.0 Cholesterol (mmol/L)   
+f.30700.0.0 Creatinine (umol/L)   
+f.30710.0.0 C-reactive protein (mg/L)  
+f.30720.0.0 Cystatin C (mg/L)  
+f.30730.0.0 Gamma glutamyltransferase (U/L)  
+f.30740.0.0 Glucose (mmol/L)   
+f.30750.0.0 Glycated haemoglobin (mmol/mol)  
+f.30760.0.0 HDL cholesterol (mmol/L)  
+f.30770.0.0 IGF-1 (nmol/L)   
+f.30780.0.0 LDL direct (mmol/L)  
+f.30790.0.0 Lipoprotein A (nmol/L)  
+f.30800.0.0 Oestradiol (pmol/L)   
+f.30810.0.0 Phosphate (mmol/L)   
+f.30820.0.0 Rheumatoid factor (IU/ml)  
+f.30830.0.0 SHBG (nmol/L)   
+f.30840.0.0 Total bilirubin (umol/L)  
+f.30850.0.0 Testosterone (nmol/L)   
+f.30860.0.0 Total protein (g/L)  
+f.30870.0.0 Triglycerides (mmol/L)   
+f.30880.0.0 Urate (umol/L)   
+f.30890.0.0 Vitamin D (nmol/L)  
+f.30897.0.0 Estimated sample dilution factor (factor)
+f.3143.0.0 Ankle spacing width  
+f.3144.0.0 Heel Broadband ultrasound attenuation, direct
+f.3147.0.0 Heel quantitative ultrasound index (QUI),
+f.3148.0.0 Heel bone mineral density (BMD)
+f.3436.0.0 Age started smoking in current
+f.3526.0.0 Mother's age at death 
+f.3536.0.0 Age started hormone-replacement therapy (HRT)
+f.3627.0.0 Age angina diagnosed  
+f.3761.0.0 Age hay fever, rhinitis or
+f.3786.0.0 Age asthma diagnosed  
+f.3872.0.0 Age of primiparous women at
+f.3894.0.0 Age heart attack diagnosed 
+f.40007.0.0 Age at death  
+f.4012.0.0 Age deep-vein thrombosis (DVT, blood
+f.4056.0.0 Age stroke diagnosed  
+f.4079.0.0 Diastolic blood pressure, automated reading
+f.4080.0.0 Systolic blood pressure, automated reading
+f.4100.0.0 Ankle spacing width (left) 
+f.4101.0.0 Heel broadband ultrasound attenuation (left)
+f.4104.0.0 Heel quantitative ultrasound index (QUI),
+f.4105.0.0 Heel bone mineral density (BMD)
+f.4106.0.0 Heel bone mineral density (BMD)
+f.4119.0.0 Ankle spacing width (right) 
+f.4120.0.0 Heel broadband ultrasound attenuation (right)
+f.4123.0.0 Heel quantitative ultrasound index (QUI),
+f.4124.0.0 Heel bone mineral density (BMD)
+f.4125.0.0 Heel bone mineral density (BMD)
+f.4194.0.0 Pulse rate   
+f.4195.0.0 Pulse wave reflection index 
+f.4196.0.0 Pulse wave peak to peak
+f.4609.0.0 Longest period of depression 
+f.4700.0.0 Age cataract diagnosed  
+f.48.0.0 Waist circumference   
+f.49.0.0 Hip circumference   
+f.5084.0.0 Spherical power (right)  
+f.5085.0.0 Spherical power (left)  
+f.5086.0.0 Cylindrical power (left)  
+f.5087.0.0 Cylindrical power (right)  
+f.5088.0.0 Astigmatism angle (right)  
+f.5089.0.0 Astigmatism angle (left)  
+f.5096.0.0 3mm weak meridian (left) 
+f.5097.0.0 6mm weak meridian (left) 
+f.5098.0.0 6mm weak meridian (right) 
+f.5099.0.0 3mm weak meridian (right) 
+f.5100.0.0 3mm weak meridian angle (right)
+f.5101.0.0 6mm weak meridian angle (right)
+f.5102.0.0 6mm weak meridian angle (left)
+f.5103.0.0 3mm weak meridian angle (left)
+f.5104.0.0 3mm strong meridian angle (left)
+f.5105.0.0 6mm strong meridian angle (left)
+f.5106.0.0 6mm strong meridian angle (right)
+f.5107.0.0 3mm strong meridian angle (right)
+f.5108.0.0 3mm asymmetry angle (right) 
+f.5109.0.0 6mm asymmetry angle (right) 
+f.5110.0.0 6mm asymmetry angle (left) 
+f.5111.0.0 3mm asymmetry angle (left) 
+f.5112.0.0 3mm cylindrical power angle (left)
+f.5113.0.0 6mm cylindrical power angle (left)
+f.5114.0.0 6mm cylindrical power angle (right)
+f.5115.0.0 3mm cylindrical power angle (right)
+f.5116.0.0 3mm cylindrical power (right) 
+f.5117.0.0 6mm cylindrical power (right) 
+f.5118.0.0 6mm cylindrical power (left) 
+f.5119.0.0 3mm cylindrical power (left) 
+f.5132.0.0 3mm strong meridian (right) 
+f.5133.0.0 6mm strong meridian (right) 
+f.5134.0.0 6mm strong meridian (left) 
+f.5135.0.0 3mm strong meridian (left) 
+f.5156.0.0 3mm asymmetry index (left) 
+f.5157.0.0 6mm asymmetry index (left) 
+f.5158.0.0 6mm asymmetry index (right) 
+f.5159.0.0 3mm asymmetry index (right) 
+f.5160.0.0 3mm regularity index (right) 
+f.5161.0.0 6mm regularity index (right) 
+f.5162.0.0 6mm regularity index (left) 
+f.5163.0.0 3mm regularity index (left) 
+f.5201.0.0 logMAR, final (right)  
+f.5208.0.0 logMAR, final (left)  
+f.5254.0.0 Intra-ocular pressure, corneal-compensated (right) 
+f.5255.0.0 Intra-ocular pressure, Goldmann-correlated (right) 
+f.5256.0.0 Corneal hysteresis (right)  
+f.5257.0.0 Corneal resistance factor (right) 
+f.5262.0.0 Intra-ocular pressure, corneal-compensated (left) 
+f.5263.0.0 Intra-ocular pressure, Goldmann-correlated (left) 
+f.5264.0.0 Corneal hysteresis (left)  
+f.5265.0.0 Corneal resistance factor (left) 
+f.5375.0.0 Longest period of unenthusiasm /
+f.5983.0.0 ECG, heart rate  
+f.5986.0.0 ECG, phase time  
+f.6032.0.0 Maximum workload during fitness test
+f.6033.0.0 Maximum heart rate during fitness
+f.6038.0.0 Number of trend entries 
+f.699.0.0 Length of time at current
+f.757.0.0 Time employed in main current
+f.767.0.0 Length of working week for
+f.78.0.0 Heel bone mineral density (BMD)
+f.796.0.0 Distance between home and job
+f.84.0.0 Cancer year/age first occurred 
+f.874.0.0 Duration of walks  
+f.914.0.0 Duration of vigorous activity 
+f.93.0.0 Systolic blood pressure, manual reading
+f.94.0.0 Diastolic blood pressure, manual reading
