@@ -1,5 +1,5 @@
 # snpboost
-An algorithm to apply statistical boosting on genotype data via a batch-based approach as described in https://www.biorxiv.org/content/10.1101/2022.04.29.489836v1.
+An algorithm to apply statistical boosting on genotype data via a batch-based approach as described in https://doi.org/10.3389/fgene.2022.1076440.
 
 snpboost includes R functions in which the boosting algorithm is implemented.
 
@@ -15,6 +15,7 @@ The following requirements of snpboost are available from CRAN:
   - parallel
   - dataPreparation
   - glmnet
+  - survival
     
 Like snpnet, it also depends on the pgenlibr package. One can install it by running the following commands in R. Notice that the installation of pgenlibr requires zstd(>=1.4.4). It can be built from source or simply available from conda, pip or brew.
 
