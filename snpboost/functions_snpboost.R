@@ -78,10 +78,10 @@ predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenoty
       w_denom <- sum(mapply(sum_help,1:length(surv)))
       wweights <- IPCw^2/w_denom
       
-      residuals <- computeResiduals(surv, pred, fit$configs, IPCw, w_denom, T_order, wweights)
+      residuals <- computeResiduals(surv, pred, fit$configs, IPCw, w_denom, T_order, wweights, fit$sigma)
       rownames(residuals) <- phe_PRS$IID
       
-      metric <- computeMetric(residuals, surv, pred, fit$configs, surv, IPCw)
+      metric <- computeMetric(residuals, surv, pred, fit$configs, surv, IPCw, fit$sigma, T_order)
     }else{
       residuals <- computeResiduals(phe_PRS[[phenotype]], pred, fit$configs)
       rownames(residuals) <- phe_PRS$IID
@@ -626,7 +626,7 @@ IPCweights <- function(x, x2= NULL, maxweight = 5) {
   
   event <- x[,2]
   x[,2] <- 1 - event
-  km <- survfit(x ~ 1)
+  km <- survival::survfit(x ~ 1)
   Ghat <- getsurv(km, times = x2[,1]) ## see github issue #54
   Ghat[x2[,2] == 0] <- 1
   w <- x2[,2] / Ghat
