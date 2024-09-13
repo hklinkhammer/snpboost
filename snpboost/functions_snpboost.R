@@ -34,6 +34,26 @@ plot_coefficients_path <- function(coeff_path,variants=na.omit(unique(coeff_path
     theme(legend.position = ifelse(legend,"bottom","none"))
 }
 
+split_last <- function(string, pattern){
+  last_pos <- stringi::stri_locate_last(string, regex = pattern)
+  
+  if (!is.na(last_pos[1])) {
+    # Extract the part before the last occurrence
+    before_last <- substring(string, 1, last_pos[1] - 1)
+    
+    # Extract the part after the last occurrence
+    after_last <- substring(string, last_pos[2] + 1)
+    
+    # Combine into a list
+    result <- c(before_last, after_last)
+  } else {
+    # If the pattern is not found, return the original string in the first part
+    result <- c(string, "")
+  }
+  
+  result
+}
+
 predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenotype, subset=NULL,idx=NULL){
   if(is.null(idx)){
     if(!is.null(fit$metric.val)){
@@ -43,7 +63,8 @@ predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenoty
     }
   }
   final_betas <- get_coefficients(fit$beta,idx,covariates=fit$configs[['covariates']])
-  chosen_SNPs <- cbind(str_split(names(final_betas)[-(1:(length(fit$configs[['covariates']])+1))],"_",simplify = T),
+
+  chosen_SNPs <- cbind(t(mapply(split_last, names(final_betas)[-(1:(length(fit$configs[['covariates']])+1))], MoreArgs = list(pattern = "_"))),
                        final_betas[-(1:(length(fit$configs[['covariates']])+1))])
   rownames(chosen_SNPs)=rep("",nrow(chosen_SNPs))
   fwrite(chosen_SNPs,paste0(fit$configs['results.dir'],"/chosen_SNPs_predict.txt"),sep="\t")
@@ -55,7 +76,7 @@ predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenoty
   
   if(nrow(chosen_SNPs)>0){
     plink2_cmd <- paste(fit$configs['plink2.path'],"--pfile",new_genotype_file,"vzs","--score",
-                        paste0(fit$configs['results.dir'],"/chosen_SNPs_predict.txt"),1,2,3,"header cols=maybefid,nallele,denom,dosagesum,scoreavgs,scoresums","--out",paste0(fit$configs['results.dir'],"/PRS"))
+                        paste0(fit$configs['results.dir'],"/chosen_SNPs_predict.txt"),1,2,3,"header cols=maybefid,denom,dosagesum,scoreavgs,scoresums","--out",paste0(fit$configs['results.dir'],"/PRS"))
     system(plink2_cmd, intern=F, wait=T)
     
     PRS <- fread(paste0(fit$configs['results.dir'],"/PRS.sscore")) %>% rename(PRS = SCORE1_SUM)
@@ -86,7 +107,7 @@ predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenoty
       residuals <- computeResiduals(phe_PRS[[phenotype]], pred, fit$configs)
       rownames(residuals) <- phe_PRS$IID
     
-      metric <- computeMetric(residuals, phe_PRS[[phenotype]], pred, fit$configs)
+      metric <- computeMetric(residuals, phe_PRS[[phenotype]], pred, fit$configs, sigma = fit$sigma)
   }
   
   if(fit$configs[['family']]=='gaussian'){
