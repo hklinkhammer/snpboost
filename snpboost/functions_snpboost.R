@@ -74,7 +74,7 @@ predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenoty
     phe <- phe[phe[[fit$configs[['split.col']]]]==subset,]
   }
   
-  if(nrow(chosen_SNPs)>0){
+  if(!is_empty(chosen_SNPs)){
     plink2_cmd <- paste(fit$configs['plink2.path'],"--pfile",new_genotype_file,"vzs","--score",
                         paste0(fit$configs['results.dir'],"/chosen_SNPs_predict.txt"),1,2,3,"header cols=maybefid,denom,dosagesum,scoreavgs,scoresums","--out",paste0(fit$configs['results.dir'],"/PRS"))
     system(plink2_cmd, intern=F, wait=T)
@@ -115,6 +115,7 @@ predict_snpboost <- function(fit, new_genotype_file, new_phenotype_file, phenoty
   }else if(fit$configs[['family']]=='binomial'){
     AUC <- as.numeric(pROC::auc(phe_PRS[[phenotype]],exp(pred)/(1+exp(pred))))
   }
+  
   out <- list(prediction = pred, residuals=residuals, metric = metric,
               Rsquare=if(fit$configs[['family']]=='gaussian'){Rsquare}else{NULL}, AUC=if(fit$configs[['family']]=='binomial'){AUC}else{NULL})
 }
